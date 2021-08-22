@@ -71,30 +71,30 @@ with open("./abis/LendingPoolCore.json") as f:
 alphajores_kit = Kit('https://alfajores-forno.celo-testnet.org') 
 alfajores_lendingPool = alphajores_kit.w3.eth.contract(address="0x0886f74eEEc443fBb6907fB5528B57C28E813129", abi= Lending_Pool)
 
-def get_latest_block(celo_mainnet_web3): 
-    celo_mainnet_web3.middleware_onion.clear()
-    blocksLatest = celo_mainnet_web3.eth.getBlock("latest")
+def get_latest_block(celo_testnet_web3): 
+    celo_testnet_web3.middleware_onion.clear()
+    blocksLatest = celo_testnet_web3.eth.getBlock("latest")
     return int(blocksLatest["number"], 16)  
 '''
   Start of Fee service
 '''
 cg = CoinGeckoAPI()
 
-helper_w3 = Kit('https://forno.celo.org').w3
+helper_w3 = Kit('https://alfajores-forno.celo-testnet.org').w3
 ether = 1000000000000000000
 
-kit = Kit('https://forno.celo.org')
+kit = Kit('https://alfajores-forno.celo-testnet.org')
 gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum')
 
 web3 = kit.w3
 eth = web3.eth
 
 
-celo_mainnet_address_provider = eth.contract(address='0x7AAaD5a5fa74Aec83b74C2a098FBC86E17Ce4aEA', abi=Lending_Pool_Addresses_Provider) 
-fee_provider_address = celo_mainnet_address_provider.functions.getFeeProvider().call()
-lending_core_address = celo_mainnet_address_provider.functions.getLendingPoolCore().call()
-lending_pool_address = celo_mainnet_address_provider.functions.getLendingPool().call()
-lendingPoolDataProvider_address = celo_mainnet_address_provider.functions.getLendingPoolDataProvider().call()
+celo_testnet_address_provider = eth.contract(address='0x6EAE47ccEFF3c3Ac94971704ccd25C7820121483', abi=Lending_Pool_Addresses_Provider) 
+fee_provider_address = celo_testnet_address_provider.functions.getFeeProvider().call()
+lending_core_address = celo_testnet_address_provider.functions.getLendingPoolCore().call()
+lending_pool_address = celo_testnet_address_provider.functions.getLendingPool().call()
+lendingPoolDataProvider_address = celo_testnet_address_provider.functions.getLendingPoolDataProvider().call()
 
 
 lendingPool = eth.contract(address= lending_pool_address, abi= Lending_Pool) 
@@ -106,14 +106,14 @@ gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum
 
 coin_reserve_address = {
         "celo": "0x471EcE3750Da237f93B8E339c536989b8978a438",
-        "cusd": "0x765DE816845861e75A25fCA122bb6898B8B1282a",
-        "ceuro":"0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73"
+        "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
+        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
 }
 
 coins_reserve_address = {
         "celo": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-        "cusd": "0x765DE816845861e75A25fCA122bb6898B8B1282a",
-        "ceuro":"0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73"
+        "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
+        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
 }
 
 def get_gas_price(coin_name):    
@@ -357,8 +357,8 @@ async def get_liquidation_price(userPublicKey: str):
         currencylist = currencies.split(',')
         coins_reserve_address = {
             "celo": '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-            "cusd": '0x765DE816845861e75A25fCA122bb6898B8B1282a' , 
-            "ceuro": '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73'  
+            "cusd": '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' , 
+            "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F'  
         }  
         # celo_price_cusd, celo_price_ceur = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
         celo_usd, cusd_usd, ceuro_usd = get_exchange_rate_in_usd("celo", coins_reserve_address["celo"]), get_exchange_rate_in_usd("cusd", coins_reserve_address["cusd"]),get_exchange_rate_in_usd("ceuro", coins_reserve_address["ceuro"])

@@ -105,7 +105,7 @@ lendingPoolDataProvider = eth.contract(address= lendingPoolDataProvider_address,
 gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum')
 
 coin_reserve_address = {
-        "celo": "0x471EcE3750Da237f93B8E339c536989b8978a438",
+        "celo": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
         "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
 }
@@ -207,7 +207,7 @@ activity_address = {
             'deposit': {
                 "Celo": "0xa0bda5d71291f391a71bf2d695b4ea620ac7b0e6",
                 "cUSD": "0x8767abbe8a753a8d608d3440947b85ebcee7c4cc",
-                "cEUR": "0x471ece3750da237f93b8e339c536989b8978a438"
+                "cEUR": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9"
             },
             'borrow': {
                 "Celo": "0xa0bda5d71291f391a71bf2d695b4ea620ac7b0e6",
@@ -280,7 +280,7 @@ def get_collateral_currencies(address):
 '''
 
 
-price_oracle = eth.contract(address='0x568547688121AA69bDEB8aEB662C321c5D7B98D0', abi= IPrice_Oracle_Getter)
+price_oracle = eth.contract(address='0x88A4a87eF224D8b1F463708D0CD62b17De593DAd', abi= IPrice_Oracle_Getter)
 fee_oracle = eth.contract(address=fee_provider_address, abi= Fee_Oracle_Getter)
 
 
@@ -288,7 +288,7 @@ security_fee_oracle = eth.contract(address=lending_core_address, abi= Lending_Po
 # print(lending_core_address)
 def get_origination_fee_borrow(borrower, amount):
     return fee_oracle.functions.calculateLoanOriginationFee(web3.toChecksumAddress(borrower), int(amount)).call()/ether
-print(get_origination_fee_borrow("0x6d2c1fd636f5c3baa83febade06373998556e617", int(ether*0.4883687378009934)))
+print(get_origination_fee_borrow("0xe2d85bf29d96d5fe4f2f312873fc60fd91ea2266", int(ether*0.4883687378009934)))
 
 def get_origination_fee_repay(coin_name, borrower):
     # print(coins_reserve_address[coin_name])
@@ -578,7 +578,7 @@ async def get_getFee(userPublicKey: str, activityType: ActivityPermittedList = N
 #             },
 #         }
 
-# print(get_price_in_celo("celo", coins_reserve_address["celo"]))   
+# print(get_price_in_celo("celo", coin_reserve_address["cusd"]))   
 # print(get_price_in_celo("cusd", coins_reserve_address["cusd"]))   
 # print(get_price_in_celo("ceuro", coins_reserve_address["ceuro"]))   
 # print(currency_prices['Celo']['cUSD'])

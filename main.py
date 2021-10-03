@@ -84,6 +84,8 @@ lendingPoolDataProvider_contract = eth.contract(address= "0x31ccB9dC068058672D96
 celo_testnet_address_provider = eth.contract(address='0xb3072f5F0d5e8B9036aEC29F37baB70E86EA0018', abi=Lending_Pool_Addresses_Provider) 
 lending_pool_address = celo_testnet_address_provider.functions.getLendingPool().call()
 
+lendingPool = eth.contract(address= lending_pool_address, abi= Lending_Pool) 
+
 def get_latest_block(celo_testnet_web3): 
     celo_testnet_web3.middleware_onion.clear()
     blocksLatest = celo_testnet_web3.eth.getBlock("latest")
@@ -95,11 +97,9 @@ cg = CoinGeckoAPI()
 
 
 
+celo_testnet_address_provider = eth.contract(address='0x6EAE47ccEFF3c3Ac94971704ccd25C7820121483', abi=Lending_Pool_Addresses_Provider) 
 fee_provider_address = celo_testnet_address_provider.functions.getFeeProvider().call()
 lending_core_address = celo_testnet_address_provider.functions.getLendingPoolCore().call()
-lending_pool_address = celo_testnet_address_provider.functions.getLendingPool().call()
-
-lendingPool = eth.contract(address= lending_pool_address, abi= Lending_Pool) 
 
 
 # print(lending_pool_address)

@@ -78,7 +78,7 @@ gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum
 web3 = kit.w3
 eth = web3.eth
 
-lendingPoolDataProvider_contract = eth.contract(address= "0x31ccB9dC068058672D96E92BAf96B1607855822E", abi= Moola_Protocol_DataProvider) 
+celo_testnet_dataprovider = eth.contract(address= "0x31ccB9dC068058672D96E92BAf96B1607855822E", abi= Moola_Protocol_DataProvider) 
 
 
 celo_testnet_address_provider = eth.contract(address='0xb3072f5F0d5e8B9036aEC29F37baB70E86EA0018', abi=Lending_Pool_Addresses_Provider) 
@@ -242,7 +242,7 @@ def get_debt_assets(currency):
 def get_collateral_currencies(address):
     collateral_currencies, debt_currencies = [], []
     try:
-        user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['celo'], web3.toChecksumAddress("0x" + address)).call()
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['celo'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
         if user_reserve_data[8] == True:
             collateral_currencies.append("Celo")
@@ -251,7 +251,7 @@ def get_collateral_currencies(address):
     except Exception as e:
         print(e)
     try:
-        user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['cusd'], web3.toChecksumAddress("0x" + address)).call()
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['cusd'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
         if user_reserve_data[8] == True:
             collateral_currencies.append("cUSD")
@@ -260,7 +260,7 @@ def get_collateral_currencies(address):
     except Exception as e:
         print(e) 
     try:
-        user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['ceuro'], web3.toChecksumAddress("0x" + address)).call()
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['ceuro'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
         if user_reserve_data[8] == True:
             collateral_currencies.append("cEUR")

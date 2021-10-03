@@ -62,14 +62,17 @@ with open("./abis/feeProvider.json") as f:
 with open("./abis/LendingPoolAddressesProvider.json") as f:
     Lending_Pool_Addresses_Provider = json.load(f)  
 
-with open("./abis/LendingPoolDataProvider.json") as f:
-    Lending_Pool_Data_Provider = json.load(f)  
+with open("./abis/MoolaProtocolDataProvider.json") as f:
+    Moola_Protocol_DataProvider = json.load(f)  
 
 with open("./abis/LendingPoolCore.json") as f:
     Lending_Pool_Core = json.load(f)  
 
 alphajores_kit = Kit('https://alfajores-forno.celo-testnet.org') 
-alfajores_lendingPool = alphajores_kit.w3.eth.contract(address="0x0886f74eEEc443fBb6907fB5528B57C28E813129", abi= Lending_Pool)
+
+celo_testnet_address_provider = eth.contract(address='0xb3072f5F0d5e8B9036aEC29F37baB70E86EA0018', abi=Lending_Pool_Addresses_Provider) 
+lending_pool_address = celo_testnet_address_provider.functions.getLendingPool().call()
+alfajores_lendingPool = alphajores_kit.w3.eth.contract(address=lending_pool_address, abi= Lending_Pool)
 
 def get_latest_block(celo_testnet_web3): 
     celo_testnet_web3.middleware_onion.clear()
@@ -89,17 +92,16 @@ gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum
 web3 = kit.w3
 eth = web3.eth
 
+lendingPoolDataProvider_contract = eth.contract(address= "0x31ccB9dC068058672D96E92BAf96B1607855822E", abi= Moola_Protocol_DataProvider) 
+
 
 celo_testnet_address_provider = eth.contract(address='0x6EAE47ccEFF3c3Ac94971704ccd25C7820121483', abi=Lending_Pool_Addresses_Provider) 
 fee_provider_address = celo_testnet_address_provider.functions.getFeeProvider().call()
 lending_core_address = celo_testnet_address_provider.functions.getLendingPoolCore().call()
 lending_pool_address = celo_testnet_address_provider.functions.getLendingPool().call()
-lendingPoolDataProvider_address = celo_testnet_address_provider.functions.getLendingPoolDataProvider().call()
-
 
 lendingPool = eth.contract(address= lending_pool_address, abi= Lending_Pool) 
-lendingPoolDataProvider = eth.contract(address= lendingPoolDataProvider_address, abi= Lending_Pool_Data_Provider) 
-# print(lendingPool.functions.getReserves().call())
+
 
 # print(lending_pool_address)
 gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum')
@@ -111,7 +113,7 @@ coin_reserve_address = {
 }
 
 coins_reserve_address = {
-        "celo": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        "celo": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
         "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
 }
@@ -243,27 +245,27 @@ def get_collateral_currencies(address):
     try:
         user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['celo'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
-        if user_reserve_data[9] == True:
+        if user_reserve_data[8] == True:
             collateral_currencies.append("Celo")
-        if user_reserve_data[1] > 0:
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
             debt_currencies.append("Celo")
     except Exception as e:
         print(e)
     try:
         user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['cusd'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
-        if user_reserve_data[9] == True:
+        if user_reserve_data[8] == True:
             collateral_currencies.append("cUSD")
-        if user_reserve_data[1] > 0:
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
             debt_currencies.append("cUSD")
     except Exception as e:
         print(e) 
     try:
         user_reserve_data = lendingPool.functions.getUserReserveData(coins_reserve_address['ceuro'], web3.toChecksumAddress("0x" + address)).call()
         print(user_reserve_data)
-        if user_reserve_data[9] == True:
+        if user_reserve_data[8] == True:
             collateral_currencies.append("cEUR")
-        if user_reserve_data[1] > 0:
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
             debt_currencies.append("cEUR")   
     except Exception as e:
         print(e)
@@ -286,9 +288,6 @@ fee_oracle = eth.contract(address=fee_provider_address, abi= Fee_Oracle_Getter)
 
 security_fee_oracle = eth.contract(address=lending_core_address, abi= Lending_Pool_Core)
 # print(lending_core_address)
-def get_origination_fee_borrow(borrower, amount):
-    return fee_oracle.functions.calculateLoanOriginationFee(web3.toChecksumAddress(borrower), int(amount)).call()/ether
-print(get_origination_fee_borrow("0xe2d85bf29d96d5fe4f2f312873fc60fd91ea2266", int(ether*0.4883687378009934)))
 
 def get_origination_fee_repay(coin_name, borrower):
     # print(coins_reserve_address[coin_name])
@@ -356,7 +355,7 @@ async def get_liquidation_price(userPublicKey: str):
     if currencies != "" and debt_assets != []:
         currencylist = currencies.split(',')
         coins_reserve_address = {
-            "celo": '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+            "celo": '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
             "cusd": '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' , 
             "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F'  
         }  
@@ -405,17 +404,16 @@ async def get_liquidation_price(userPublicKey: str):
        
         except Exception as e:
             print(e)
-            user_account_data = lendingPoolDataProvider.functions.calculateUserGlobalData(web3.toChecksumAddress("0x" + userPublicKey)).call(block_identifier=block_number)
-     
+           
         finally:
-            total_in_eth = getInEther(user_account_data[1])
-            total_in_debt = getInEther(user_account_data[2])
-            total_in_fees = getInEther(user_account_data[3])
+            total_in_eth = getInEther(user_account_data[0])
+            total_in_debt = getInEther(user_account_data[1])
+           
             # total_in_eth = getInEther(user_account_data[1])
             # total_in_debt = getInEther(user_account_data[2])
             liquidation_price = 0.0
             if total_in_eth != 0.0 and total_in_debt != 0.0:
-                health_factor = (total_in_eth*0.8)/(total_in_debt+total_in_fees)
+                health_factor = (total_in_eth*0.8)/(total_in_debt)
                 Liquidation_price_celo_in_celo = 1/(health_factor)
                 liquidation_prices["Celo"]["Celo"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["cUSD"]["cUSD"] = Liquidation_price_celo_in_celo 
@@ -446,44 +444,7 @@ async def get_liquidation_price(userPublicKey: str):
         		'data': response
         		}
 
-def get_response_with_loan_origination_fee(activity, address, currency, amount, final_response):
-    loan_origination_fee = 0
-    # print(currency)
-    try:
-        if activity == "borrow":
-            if currency == "Celo":
-                print(amount)
-                print(ether)
-                loan_origination_fee = get_origination_fee_borrow("0x"+address, int(ether*amount))
-            elif currency == "cUSD":
-                cusd_exchange_rate =  get_price_in_celo('cusd', coins_reserve_address['cusd'])
-                loan_origination_fee = get_origination_fee_borrow("0x"+address, int(ether*amount*cusd_exchange_rate))/cusd_exchange_rate
-                
-            elif currency == "cEUR":
-                ceuro_exchange_rate = get_price_in_celo('ceuro', coins_reserve_address['ceuro']) 
-                loan_origination_fee = get_origination_fee_borrow("0x"+address, int(ether*amount*ceuro_exchange_rate))/ceuro_exchange_rate
-            
-       
-        else:
-            # print("Calculate repay: ")
-            # print(coin_dict)
-            # print("currency: "+ coin_dict[currency])
-            # print("Address" + "0x"+address)
-            loan_origination_fee = get_origination_fee_repay(coin_dict[currency], "0x"+address)
-            print("loan_origination_fee: "+ str(loan_origination_fee))
-    except Exception as e:
-        print("Error: ")
-        print(e)
-        loan_origination_fee = 0
-    finally:
-        
-            
-        final_response["loanOriginationFee"]  = loan_origination_fee
-        # print("loan_origination_fee: " + str(loan_origination_fee))
-        return final_response        
 
-# currency, activityType = "Celo", "borrow"
-# print(coin_dict[currency], activity_address[activityType][currency])
 
 # /get/getFee
 #http://127.0.0.1:8000/get/getFee?userPublicKey=011ce5bd73a744b2b5d12265be37250defb5b590&activityType=borrow&amount=40.0
@@ -491,15 +452,15 @@ def get_response_with_loan_origination_fee(activity, address, currency, amount, 
 async def get_getFee(userPublicKey: str, activityType: ActivityPermittedList = None, amount:float = None,currency: Optional[CurrencyPermittedList] = Default_Currency):
 
 	executionDateTime = datetime.datetime.now(datetime.timezone.utc).timestamp()
-	print("currency and activityType: ")
+	# print("currency and activityType: ")
 	# print(coin_dict)
 	# print(activity_address)
     
-	print("Currency: "+ str(currency))
-	print("Activity: "+ str(activityType))
-	print(coin_dict[currency], activity_address[activityType][currency])
+	# print("Currency: "+ str(currency))
+	# print("Activity: "+ str(activityType))
+	# print(coin_dict[currency], activity_address[activityType][currency])
     
-	TotalFee = get_fee(activityType, amount, coin_dict[currency], activity_address[activityType][currency])
+	# TotalFee = get_fee(activityType, amount, coin_dict[currency], activity_address[activityType][currency])
 
 	
 	final_response = {
@@ -508,10 +469,9 @@ async def get_getFee(userPublicKey: str, activityType: ActivityPermittedList = N
                     'currency': currency,
                     'activity': activityType,
                     'amount': float(amount),
-                    'securityFee': TotalFee
+                    'securityFee': 0.01
     }
-	if activityType == "borrow" or activityType == "repay":
-	    return get_response_with_loan_origination_fee(activityType, userPublicKey, currency, amount, final_response)
+
 	return final_response
 	
 

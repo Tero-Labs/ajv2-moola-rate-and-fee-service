@@ -362,7 +362,7 @@ async def get_liquidation_price(userPublicKey: str):
         }  
   
         cusd_price_in_celo, ceuro_price_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
-        creal_price_in_celo = get_price_in_celo("creal")
+        creal_price_in_celo = get_price_in_celo("creal", coins_reserve_address["creal"])
 
         currency_prices = {
             'Celo': {

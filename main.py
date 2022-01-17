@@ -38,13 +38,15 @@ class ActivityPermittedList(str, Enum):
 coin_dict = {
 "cUSD": "cusd",
 "Celo": "celo",
-"cEUR": "ceuro"
+"cEUR": "ceuro",
+"cREAL": "creal"
 }
 
 class CurrencyPermittedList(str, Enum):
-	cUSD = "cUSD"
-	Celo = "Celo"
-	cEUR = "cEUR"
+    cUSD = "cUSD"
+    Celo = "Celo"
+    cEUR = "cEUR"
+    cREAL = "cREAL"
 
 address_regex = '/[a-fA-F0-9]{40}$/'
 
@@ -108,13 +110,16 @@ gas_contract = kit.base_wrapper.create_and_get_contract_by_name('GasPriceMinimum
 coin_reserve_address = {
         "celo": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
-        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
+        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
+        "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545"
 }
 
 coins_reserve_address = {
         "celo": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9",
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
-        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F"
+        "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
+        "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545"
+        
 }
 
 def get_gas_price(coin_name):    
@@ -179,53 +184,40 @@ def get_fee(activity, amount, coin_name, user_address):
     elif coin_name == "ceuro":
         ceur_exchange_rate = get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
         return price_in_celo / ceur_exchange_rate
+    elif coin_name == "creal":
+        creal_exchange_rate = get_price_in_celo("creal", coins_reserve_address["creal"])
+        return price_in_celo / creal_exchange_rate
     return price_in_celo
 
 historical_gas_amount = {
             'deposit': {
                 "celo": 178885,
                 "cusd": 213517,
-                "ceuro": 176837
+                "ceuro": 176837,
+                "creal": 176837
             },
             'borrow': {
                 "celo": 373567,
                 "cusd": 382804,
-                "ceuro": 413753
+                "ceuro": 413753,
+                "creal": 373567
             },
             'repay': {
                 "celo": 162417,
                 "cusd": 204310,
-                "ceuro": 199664
+                "ceuro": 199664,
+                "creal": 162417,
+                
             },
             'withdraw': {
                 "celo": 129545,
                 "cusd": 158204,
-                "ceuro": 158678
+                "ceuro": 158678,
+                "creal": 129545, 
             },
         }   
 
-activity_address = {
-            'deposit': {
-                "Celo": "0xa0bda5d71291f391a71bf2d695b4ea620ac7b0e6",
-                "cUSD": "0x8767abbe8a753a8d608d3440947b85ebcee7c4cc",
-                "cEUR": "0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9"
-            },
-            'borrow': {
-                "Celo": "0xa0bda5d71291f391a71bf2d695b4ea620ac7b0e6",
-                "cUSD": "0x8daE998C630d3D959aF0621a8d2ae52f13D0Ca13",
-                "cEUR": "0x8daE998C630d3D959aF0621a8d2ae52f13D0Ca13"
-            },
-            'repay': {
-                "Celo": "0xa0bda5d71291f391a71bf2d695b4ea620ac7b0e6",
-                "cUSD": "0x8daE998C630d3D959aF0621a8d2ae52f13D0Ca13",
-                "cEUR": "0x8a045c8dcb7977425aa5a13887477d0dd4c2c28e"
-            },
-            'withdraw': {
-                "Celo": "0x7037F7296B2fc7908de7b57a89efaa8319f0C500",
-                "cUSD": "0x64dEFa3544c695db8c535D289d843a189aa26b98",
-                "cEUR": "0xa8d0E6799FF3Fd19c6459bf02689aE09c4d78Ba7"
-            },
-        }   
+   
 
 
    
@@ -235,7 +227,7 @@ def getInEther(num):
     return num/ether
 
 def get_debt_assets(currency):
-    return [x for x in ['Celo', 'cUSD', 'cEUR'] if x != currency]
+    return [x for x in ['Celo', 'cUSD', 'cEUR', "cREAL"] if x != currency]
 
 
 
@@ -268,6 +260,15 @@ def get_collateral_currencies(address):
             debt_currencies.append("cEUR")   
     except Exception as e:
         print(e)
+    try:
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['creal'], web3.toChecksumAddress("0x" + address)).call()
+        print(user_reserve_data)
+        if user_reserve_data[8] == True:
+            collateral_currencies.append("cREAL")
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
+            debt_currencies.append("cREAL")   
+    except Exception as e:
+        print(e)    
     return ",".join(collateral_currencies), debt_currencies
     
 
@@ -356,29 +357,39 @@ async def get_liquidation_price(userPublicKey: str):
         coins_reserve_address = {
             "celo": '0xF194afDf50B03e69Bd7D057c1Aa9e10c9954E4C9',
             "cusd": '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' , 
-            "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F'  
+            "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F',
+            "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545"  
         }  
-        # celo_price_cusd, celo_price_ceur = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
-        celo_usd, cusd_usd, ceuro_usd = get_exchange_rate_in_usd("celo", coins_reserve_address["celo"]), get_exchange_rate_in_usd("cusd", coins_reserve_address["cusd"]),get_exchange_rate_in_usd("ceuro", coins_reserve_address["ceuro"])
-        cusd_in_celo, ceuro_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
+  
+        cusd_price_in_celo, ceuro_price_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
+        creal_price_in_celo = get_price_in_celo("creal")
 
         currency_prices = {
             'Celo': {
                 "Celo": 1,
-                "cUSD": 1/cusd_in_celo,
-                "cEUR": 1/ceuro_in_celo
+                "cUSD": 1/cusd_price_in_celo,
+                "cEUR": 1/ceuro_price_in_celo,
+                "cREAL": 1/creal_price_in_celo
             },
             'cUSD': {
-                "Celo": cusd_in_celo,
+                "Celo": cusd_price_in_celo,
                 "cUSD": 1,
-                "cEUR": cusd_usd/ceuro_usd
+                "cEUR": cusd_price_in_celo/ceuro_price_in_celo,
+                "cREAL": cusd_price_in_celo/creal_price_in_celo, 
             },
             'cEUR': {
-                "cUSD": ceuro_usd/cusd_usd,
-                "Celo": ceuro_in_celo,
-                "cEUR": 1
+                "cUSD": ceuro_price_in_celo/cusd_price_in_celo,
+                "Celo": ceuro_price_in_celo,
+                "cEUR": 1,
+                "cREAL": ceuro_price_in_celo/creal_price_in_celo,
             },
-        }     
+            'cREAL': {
+               "cUSD": creal_price_in_celo/cusd_price_in_celo,
+                "Celo": creal_price_in_celo,
+                "cEUR": creal_price_in_celo/ceuro_price_in_celo,
+                "cREAL": 1, 
+            }
+        }   
         liquidation_prices = {
             'Celo': {
                 "cUSD": 0,
@@ -417,12 +428,16 @@ async def get_liquidation_price(userPublicKey: str):
                 liquidation_prices["Celo"]["Celo"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["cUSD"]["cUSD"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["cEUR"]["cEUR"] = Liquidation_price_celo_in_celo 
+                liquidation_prices["cREAL"]["cREAL"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["Celo"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cUSD"]
                 liquidation_prices["Celo"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cEUR"]
+                liquidation_prices["Celo"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cREAL"]
                 liquidation_prices["cUSD"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["Celo"]
                 liquidation_prices["cUSD"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["cEUR"]
+                liquidation_prices["cUSD"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["cREAL"]
                 liquidation_prices["cEUR"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["Celo"]
                 liquidation_prices["cEUR"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cUSD"]
+                liquidation_prices["cEUR"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cREAL"]
             response = {"collateral": currencies, "collateralAssets": [] }  
             # print(len(currencylist))
             for currency in currencylist:
@@ -451,15 +466,9 @@ async def get_liquidation_price(userPublicKey: str):
 async def get_getFee(userPublicKey: str, activityType: ActivityPermittedList = None, amount:float = None,currency: Optional[CurrencyPermittedList] = Default_Currency):
 
 	executionDateTime = datetime.datetime.now(datetime.timezone.utc).timestamp()
-	# print("currency and activityType: ")
-	# print(coin_dict)
-	# print(activity_address)
+
     
-	# print("Currency: "+ str(currency))
-	# print("Activity: "+ str(activityType))
-	# print(coin_dict[currency], activity_address[activityType][currency])
-    
-	# TotalFee = get_fee(activityType, amount, coin_dict[currency], activity_address[activityType][currency])
+
 
 	
 	final_response = {

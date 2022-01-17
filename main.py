@@ -393,14 +393,22 @@ async def get_liquidation_price(userPublicKey: str):
         liquidation_prices = {
             'Celo': {
                 "cUSD": 0,
-                "cEUR": 0
+                "cEUR": 0,
+                "cREAL": 0
             },
             'cUSD': {
                 "Celo": 0,
-                "cEUR": 0
+                "cEUR": 0,
+                "cREAL": 0
             },
             'cEUR': {
                 "cUSD": 0,
+                "Celo": 0,
+                "cREAL": 0
+            },
+             'cREAL': {
+                "cUSD": 0,
+                "Celo": 0,
                 "Celo": 0
             },
         }

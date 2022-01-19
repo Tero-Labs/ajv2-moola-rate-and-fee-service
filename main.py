@@ -363,7 +363,8 @@ async def get_liquidation_price(userPublicKey: str):
   
         cusd_price_in_celo, ceuro_price_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
         creal_price_in_celo = get_price_in_celo("creal", coins_reserve_address["creal"])
-
+        print("creal_price_in_celo: ")
+        print(creal_price_in_celo)
         currency_prices = {
             'Celo': {
                 "Celo": 1,
@@ -450,6 +451,9 @@ async def get_liquidation_price(userPublicKey: str):
                 liquidation_prices["cEUR"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["Celo"]
                 liquidation_prices["cEUR"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cUSD"]
                 liquidation_prices["cEUR"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cREAL"]
+                liquidation_prices["cREAL"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["Celo"]
+                liquidation_prices["cREAL"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["cUSD"]
+                liquidation_prices["cREAL"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["cEUR"]
             response = {"collateral": currencies, "collateralAssets": [] }  
             # print(len(currencylist))
             for currency in currencylist:

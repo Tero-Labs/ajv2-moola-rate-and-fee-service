@@ -282,7 +282,7 @@ def get_collateral_currencies(address):
 '''
 
 
-price_oracle = eth.contract(address='0x88A4a87eF224D8b1F463708D0CD62b17De593DAd', abi= IPrice_Oracle_Getter)
+price_oracle = eth.contract(address='0x005df00133e6201F8ef4D9B620084AB725CD469c', abi= IPrice_Oracle_Getter)
 fee_oracle = eth.contract(address=fee_provider_address, abi= Fee_Oracle_Getter)
 
 

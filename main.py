@@ -48,7 +48,7 @@ class CurrencyPermittedList(str, Enum):
     Celo = "Celo"
     cEUR = "cEUR"
     cREAL = "cREAL"
-    Moo = "Noo"
+    Moo = "Moo"
 
 address_regex = '/[a-fA-F0-9]{40}$/'
 
@@ -191,6 +191,9 @@ def get_fee(activity, amount, coin_name, user_address):
     elif coin_name == "creal":
         creal_exchange_rate = get_price_in_celo("creal", coins_reserve_address["creal"])
         return price_in_celo / creal_exchange_rate
+    elif coin_name == "moo":
+        creal_exchange_rate = get_price_in_celo("moo", coins_reserve_address["moo"])
+        return price_in_celo / creal_exchange_rate
     return price_in_celo
 
 historical_gas_amount = {
@@ -275,6 +278,7 @@ def get_collateral_currencies(address):
         print(e) 
     try:
         user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['moo'], web3.toChecksumAddress("0x" + address)).call()
+        print("For moo:")
         print(user_reserve_data)
         if user_reserve_data[8] == True:
             collateral_currencies.append("Moo")
@@ -368,7 +372,7 @@ async def get_liquidation_price(userPublicKey: str):
             "cusd": '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' , 
             "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F',
             "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545",
-            "noo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e"  
+            "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e"  
         }  
   
         cusd_price_in_celo, ceuro_price_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
@@ -604,4 +608,3 @@ async def get_getFee(userPublicKey: str, activityType: ActivityPermittedList = N
 #                 "cEUR": 1
 #             },
 #         }
-

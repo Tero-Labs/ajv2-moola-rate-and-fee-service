@@ -40,7 +40,10 @@ coin_dict = {
 "Celo": "celo",
 "cEUR": "ceuro",
 "cREAL": "creal",
-"Moo": "moo"
+"Moo": "moo",
+"GNT": "gnt",
+"UBE": "ube",
+"PACT": "pact"
 }
 
 class CurrencyPermittedList(str, Enum):
@@ -49,6 +52,9 @@ class CurrencyPermittedList(str, Enum):
     cEUR = "cEUR"
     cREAL = "cREAL"
     Moo = "Moo"
+    GNT = "GNT"
+    UBE = "UBE"
+    PACT = "PACT"
 
 address_regex = '/[a-fA-F0-9]{40}$/'
 
@@ -114,7 +120,10 @@ coin_reserve_address = {
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
         "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
         "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545",
-        "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e"
+        "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e",
+        'gnt': '0xcd8148C6f63C1559a1f95962569a915AA7907Eb7',  
+        'ube': '0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC',  
+        'pact': '0x73A2De6A8370108D43c3C80430C84c30df323eD2'
 }
 
 coins_reserve_address = {
@@ -122,7 +131,10 @@ coins_reserve_address = {
         "cusd": "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1",
         "ceuro":"0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F",
         "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545",
-        "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e"
+        "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e",
+        'gnt': '0xcd8148C6f63C1559a1f95962569a915AA7907Eb7',  
+        'ube': '0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC',  
+        'pact': '0x73A2De6A8370108D43c3C80430C84c30df323eD2'
         
 }
 
@@ -234,7 +246,7 @@ def getInEther(num):
     return num/ether
 
 def get_debt_assets(currency):
-    return [x for x in ['Celo', 'cUSD', 'cEUR', "cREAL", "Moo"] if x != currency]
+    return [x for x in ['Celo', 'cUSD', 'cEUR', "cREAL", "Moo", "GNT", "UBE", "PACT"] if x != currency]
 
 
 
@@ -284,6 +296,36 @@ def get_collateral_currencies(address):
             collateral_currencies.append("Moo")
         if user_reserve_data[2] + user_reserve_data[5] > 0:
             debt_currencies.append("Moo")   
+    except Exception as e:
+        print(e)
+    try:
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['gnt'], web3.toChecksumAddress("0x" + address)).call()
+        print("For gnt:")
+        print(user_reserve_data)
+        if user_reserve_data[8] == True:
+            collateral_currencies.append("GNT")
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
+            debt_currencies.append("GNT")   
+    except Exception as e:
+        print(e)
+    try:
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['ube'], web3.toChecksumAddress("0x" + address)).call()
+        print("For ube:")
+        print(user_reserve_data)
+        if user_reserve_data[8] == True:
+            collateral_currencies.append("UBE")
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
+            debt_currencies.append("UBE")   
+    except Exception as e:
+        print(e)
+    try:
+        user_reserve_data = celo_testnet_dataprovider.functions.getUserReserveData(coins_reserve_address['pact'], web3.toChecksumAddress("0x" + address)).call()
+        print("For pact:")
+        print(user_reserve_data)
+        if user_reserve_data[8] == True:
+            collateral_currencies.append("PACT")
+        if user_reserve_data[2] + user_reserve_data[5] > 0:
+            debt_currencies.append("PACT")   
     except Exception as e:
         print(e)    
     return ",".join(collateral_currencies), debt_currencies
@@ -372,12 +414,18 @@ async def get_liquidation_price(userPublicKey: str):
             "cusd": '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' , 
             "ceuro": '0x10c892A6EC43a53E45D0B916B4b7D383B1b78C0F',
             "creal": "0xE4D517785D091D3c54818832dB6094bcc2744545",
-            "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e"  
+            "moo": "0x17700282592D6917F6A73D0bF8AcCf4D578c131e",
+            'gnt': '0xcd8148C6f63C1559a1f95962569a915AA7907Eb7',  
+            'ube': '0x00Be915B9dCf56a3CBE739D9B9c202ca692409EC',  
+            'pact': '0x73A2De6A8370108D43c3C80430C84c30df323eD2' 
         }  
   
         cusd_price_in_celo, ceuro_price_in_celo = get_price_in_celo("cusd", coins_reserve_address["cusd"]), get_price_in_celo("ceuro", coins_reserve_address["ceuro"])
         creal_price_in_celo = get_price_in_celo("creal", coins_reserve_address["creal"])
         moo_price_in_celo = get_price_in_celo("moo", coins_reserve_address["moo"])
+        gnt_price_in_celo = get_price_in_celo("gnt", coins_reserve_address["gnt"])
+        ube_price_in_celo = get_price_in_celo("ube", coins_reserve_address["ube"])
+        pact_price_in_celo = get_price_in_celo("pact", coins_reserve_address["pact"])
         print("creal_price_in_celo: ")
         print(creal_price_in_celo)
         currency_prices = {
@@ -386,35 +434,80 @@ async def get_liquidation_price(userPublicKey: str):
                     "cUSD": 1/cusd_price_in_celo,
                     "cEUR": 1/ceuro_price_in_celo,
                     "cREAL":1/creal_price_in_celo,
-                    "Moo":1/moo_price_in_celo
+                    "Moo":1/moo_price_in_celo,
+                    "GNT": 1/gnt_price_in_celo,
+                    "UBE": 1/ube_price_in_celo,
+                    "PACT": 1/pact_price_in_celo
                 },
                 'cUSD': {
                     "Celo": cusd_price_in_celo,
                     "cUSD": 1,
                     "cEUR": cusd_price_in_celo/ceuro_price_in_celo,
                     "cREAL":cusd_price_in_celo/creal_price_in_celo, 
-                    "Moo":cusd_price_in_celo/moo_price_in_celo 
+                    "Moo":cusd_price_in_celo/moo_price_in_celo,
+                    "GNT": cusd_price_in_celo/gnt_price_in_celo, 
+                    "UBE": cusd_price_in_celo/ube_price_in_celo, 
+                    "PACT": cusd_price_in_celo/pact_price_in_celo,
                 },
                 'cEUR': {
                     "cUSD": ceuro_price_in_celo/cusd_price_in_celo,
                     "Celo": ceuro_price_in_celo,
                     "cEUR": 1,
                     "cREAL":ceuro_price_in_celo/creal_price_in_celo, 
-                    "Moo":ceuro_price_in_celo/moo_price_in_celo
+                    "Moo":ceuro_price_in_celo/moo_price_in_celo,
+                    "GNT": ceuro_price_in_celo/gnt_price_in_celo,
+                    "UBE": ceuro_price_in_celo/ube_price_in_celo,
+                    "PACT": ceuro_price_in_celo/pact_price_in_celo,
                 },
                 'cREAL': {
                     "cUSD": creal_price_in_celo/cusd_price_in_celo,
                     "Celo": creal_price_in_celo,
                     "cEUR": creal_price_in_celo/ceuro_price_in_celo,
                     "cREAL":1, 
-                    "Moo":creal_price_in_celo/moo_price_in_celo, 
+                    "Moo":creal_price_in_celo/moo_price_in_celo,
+                    "GNT": creal_price_in_celo/gnt_price_in_celo, 
+                    "UBE": creal_price_in_celo/ube_price_in_celo, 
+                    "PACT": creal_price_in_celo/pact_price_in_celo, 
                 },
                 'Moo': {
                     "cUSD": moo_price_in_celo/cusd_price_in_celo,
                     "Celo": moo_price_in_celo,
                     "cEUR": moo_price_in_celo/ceuro_price_in_celo,
                     "cREAL": moo_price_in_celo/creal_price_in_celo,
-                    "Moo":1
+                    "Moo":1,
+                    "GNT": moo_price_in_celo/gnt_price_in_celo, 
+                    "UBE": moo_price_in_celo/ube_price_in_celo, 
+                    "PACT": moo_price_in_celo/pact_price_in_celo,
+                },
+                'GNT': {
+                    "cUSD": gnt_price_in_celo/cusd_price_in_celo,
+                    "Celo": gnt_price_in_celo,
+                    "cEUR": gnt_price_in_celo/ceuro_price_in_celo,
+                    "cREAL": gnt_price_in_celo/creal_price_in_celo, 
+                    "Moo": gnt_price_in_celo/moo_price_in_celo, 
+                    "GNT": 1, 
+                    "UBE": gnt_price_in_celo/ube_price_in_celo, 
+                    "PACT": gnt_price_in_celo/pact_price_in_celo, 
+                },
+                'UBE': {
+                    "cUSD": ube_price_in_celo/cusd_price_in_celo,
+                    "Celo": ube_price_in_celo,
+                    "cEUR": ube_price_in_celo/ceuro_price_in_celo,
+                    "cREAL": ube_price_in_celo/creal_price_in_celo, 
+                    "Moo": ube_price_in_celo/moo_price_in_celo, 
+                    "GNT": ube_price_in_celo/gnt_price_in_celo, 
+                    "UBE": 1, 
+                    "PACT": ube_price_in_celo/pact_price_in_celo, 
+                },
+                'PACT': {
+                    "cUSD": pact_price_in_celo/cusd_price_in_celo,
+                    "Celo": pact_price_in_celo,
+                    "cEUR": pact_price_in_celo/ceuro_price_in_celo,
+                    "cREAL": pact_price_in_celo/creal_price_in_celo, 
+                    "Moo": pact_price_in_celo/moo_price_in_celo, 
+                    "GNT": pact_price_in_celo/gnt_price_in_celo, 
+                    "UBE": pact_price_in_celo/ube_price_in_celo, 
+                    "PACT": 1, 
                 }
             }
    
@@ -424,35 +517,80 @@ async def get_liquidation_price(userPublicKey: str):
                 "cUSD": 0,
                 "cEUR": 0,
                 "cREAL": 0,
-                "Moo": 0
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
             },
             'cUSD': {
                 "Celo": 0,
                 "cUSD": 0,
                 "cEUR": 0,
                 "cREAL": 0,
-                "Moo": 0
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
             },
             'cEUR': {
                 "Celo": 0,
                 "cUSD": 0,
                 "cEUR": 0,
                 "cREAL": 0,
-                "Moo": 0
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
             },
              'cREAL': {
                 "Celo": 0,
                 "cUSD": 0,
                 "cEUR": 0,
                 "cREAL": 0,
-                "Moo": 0
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
             },
              'Moo': {
                 "Celo": 0,
                 "cUSD": 0,
                 "cEUR": 0,
                 "cREAL": 0,
-                "Moo": 0
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
+            },
+            'GNT': {
+                "Celo": 0,
+                "cUSD": 0,
+                "cEUR": 0,
+                "cREAL": 0,
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
+            },
+            'UBE': {
+                "Celo": 0,
+                "cUSD": 0,
+                "cEUR": 0,
+                "cREAL": 0,
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
+            },
+            'PACT': {
+                "Celo": 0,
+                "cUSD": 0,
+                "cEUR": 0,
+                "cREAL": 0,
+                "Moo": 0,
+                "GNT": 0,
+                "UBE": 0,
+                "PACT": 0
             },
         }
         block_number = get_latest_block(helper_w3)
@@ -481,26 +619,65 @@ async def get_liquidation_price(userPublicKey: str):
                 liquidation_prices["cEUR"]["cEUR"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["cREAL"]["cREAL"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["Moo"]["Moo"] = Liquidation_price_celo_in_celo 
+                liquidation_prices["GNT"]["GNT"] = Liquidation_price_celo_in_celo 
+                liquidation_prices["UBE"]["UBE"] = Liquidation_price_celo_in_celo 
+                liquidation_prices["PACT"]["PACT"] = Liquidation_price_celo_in_celo 
                 liquidation_prices["Celo"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cUSD"]
                 liquidation_prices["Celo"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cEUR"]
                 liquidation_prices["Celo"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["cREAL"]
                 liquidation_prices["Celo"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["Moo"]
+                liquidation_prices["Celo"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["GNT"]
+                liquidation_prices["Celo"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["UBE"]
+                liquidation_prices["Celo"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["Celo"]["PACT"]
                 liquidation_prices["cUSD"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["Celo"]
                 liquidation_prices["cUSD"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["cEUR"]
                 liquidation_prices["cUSD"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["cREAL"]
                 liquidation_prices["cUSD"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["Moo"]
+                liquidation_prices["cUSD"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["GNT"]
+                liquidation_prices["cUSD"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["UBE"]
+                liquidation_prices["cUSD"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["cUSD"]["PACT"]
                 liquidation_prices["cEUR"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["Celo"]
                 liquidation_prices["cEUR"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cUSD"]
                 liquidation_prices["cEUR"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["cREAL"]
                 liquidation_prices["cEUR"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["Moo"]
+                liquidation_prices["cEUR"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["GNT"]
+                liquidation_prices["cEUR"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["UBE"]
+                liquidation_prices["cEUR"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["cEUR"]["PACT"]
                 liquidation_prices["cREAL"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["Celo"]
                 liquidation_prices["cREAL"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["cUSD"]
                 liquidation_prices["cREAL"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["cEUR"]
                 liquidation_prices["cREAL"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["Moo"]
+                liquidation_prices["cREAL"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["GNT"]
+                liquidation_prices["cREAL"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["UBE"]
+                liquidation_prices["cREAL"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["cREAL"]["PACT"]
                 liquidation_prices["Moo"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["Celo"]
                 liquidation_prices["Moo"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["cUSD"]
                 liquidation_prices["Moo"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["cEUR"]
                 liquidation_prices["Moo"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["cREAL"]
+                liquidation_prices["Moo"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["GNT"]
+                liquidation_prices["Moo"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["UBE"]
+                liquidation_prices["Moo"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["Moo"]["PACT"]
+                liquidation_prices["GNT"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["Celo"]
+                liquidation_prices["GNT"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["cUSD"]
+                liquidation_prices["GNT"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["cEUR"]
+                liquidation_prices["GNT"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["cREAL"]
+                liquidation_prices["GNT"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["Moo"]
+                liquidation_prices["GNT"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["UBE"]
+                liquidation_prices["GNT"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["GNT"]["PACT"]
+                liquidation_prices["UBE"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["Celo"]
+                liquidation_prices["UBE"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["cUSD"]
+                liquidation_prices["UBE"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["cEUR"]
+                liquidation_prices["UBE"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["cREAL"]
+                liquidation_prices["UBE"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["Moo"]
+                liquidation_prices["UBE"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["GNT"]
+                liquidation_prices["UBE"]["PACT"] = Liquidation_price_celo_in_celo * currency_prices["UBE"]["PACT"]
+                liquidation_prices["PACT"]["Celo"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["Celo"]
+                liquidation_prices["PACT"]["cUSD"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["cUSD"]
+                liquidation_prices["PACT"]["cEUR"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["cEUR"]
+                liquidation_prices["PACT"]["cREAL"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["cREAL"]
+                liquidation_prices["PACT"]["Moo"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["Moo"]
+                liquidation_prices["PACT"]["GNT"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["GNT"]
+                liquidation_prices["PACT"]["UBE"] = Liquidation_price_celo_in_celo * currency_prices["PACT"]["UBE"]
             response = {"collateral": currencies, "collateralAssets": [] }  
             # print(len(currencylist))
             for currency in currencylist:
